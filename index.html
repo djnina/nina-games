@@ -186,6 +186,19 @@ async function setup(){
   firebase.initializeApp(firebaseConfig);db=firebase.database();
   const credential=await firebase.auth().signInAnonymously();
   uid=credential.user.uid;
+  if (isHost) {
+  const publicSnap = await db.ref("publicGame").get();
+
+  if (!publicSnap.exists()) {
+    await db.ref("publicGame").set(initialPublic);
+  }
+
+  const answersSnap = await db.ref("privateAnswers").get();
+
+  if (!answersSnap.exists()) {
+    await db.ref("privateAnswers").set(initialAnswers);
+  }
+} 
   if(isHost)$("uid").textContent=uid;
   say("Signed in. Waiting for database permissions…");
 
