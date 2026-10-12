@@ -9,12 +9,12 @@
 :root{--bg:#10102b;--purple:#7048e8;--gold:#ffd166;--muted:#b9b7d9;--pink:#ff5c8a}
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#29205b,transparent 55%),var(--bg);color:white;font-family:system-ui,sans-serif;text-align:center}
-header{padding:24px 14px 8px}
+header{padding:22px 12px 8px}
 .eyebrow{color:var(--gold);text-transform:uppercase;letter-spacing:4px;font-size:12px;font-weight:800}
 h1{margin:8px 0;font-size:clamp(35px,7vw,68px);font-weight:1000;font-style:italic;text-shadow:4px 4px #4927a8}
 .subtitle{color:var(--muted)}
-.scoreboard{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:12px}
-.team{background:#211d49;border:2px solid #6552bd;border-radius:16px;padding:12px 20px;min-width:170px}
+.scoreboard{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;padding:12px}
+.team{background:#211d49;border:2px solid #6552bd;border-radius:16px;padding:12px 20px;min-width:160px}
 .team-name{color:var(--muted);font-weight:800;font-size:13px;letter-spacing:2px;text-transform:uppercase}
 .score{color:var(--gold);font-size:40px;font-weight:900}
 .round-label{display:inline-block;background:var(--gold);color:#21163c;border-radius:30px;padding:7px 18px;font-size:12px;font-weight:900;text-transform:uppercase}
@@ -23,14 +23,12 @@ h1{margin:8px 0;font-size:clamp(35px,7vw,68px);font-weight:1000;font-style:itali
 .answer{min-height:72px;border:3px solid #a997ff;border-radius:12px;background:linear-gradient(135deg,#5234bd,#302078);display:flex;align-items:center;justify-content:space-between;padding:10px 14px;gap:9px;font-size:clamp(14px,2.4vw,21px);font-weight:800;text-align:left;overflow:hidden}
 .number{background:#17113f;border:2px solid #a997ff;border-radius:8px;width:36px;min-width:36px;height:36px;display:grid;place-items:center;color:var(--gold)}
 .points{color:var(--gold);font-size:22px;min-width:30px;text-align:right}
-.answer.hidden .answer-text,.answer.hidden .points{visibility:hidden}
 .strikes{display:flex;justify-content:center;gap:18px;margin:22px;min-height:48px}
 .strike{color:#54496f;font-size:42px;font-weight:1000}
 .strike.active{color:var(--pink);text-shadow:0 0 18px #ff3e75}
 .bank{color:var(--muted);font-size:13px;letter-spacing:2px;text-transform:uppercase}
 .bank strong{display:block;color:var(--gold);font-size:32px;letter-spacing:0}
 #hostPanel{display:none;width:min(850px,94vw);margin:28px auto;padding:20px;background:#1b173b;border:1px solid #6552bd;border-radius:18px;text-align:left}
-#hostPanel h2{margin-top:0}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;align-items:center}
 button,input{font:inherit;border-radius:9px;border:1px solid #7566b7;padding:10px 12px}
 button{background:var(--purple);color:white;font-weight:800;cursor:pointer}
@@ -41,8 +39,8 @@ input{background:#100d28;color:white;min-width:0}
 .row input{flex:1;width:130px}
 .host-answer{display:grid;grid-template-columns:1fr 80px;gap:7px;margin:7px 0}
 .host-answer input{width:100%}
-.hint{font-size:12px;color:var(--muted);line-height:1.6;overflow-wrap:anywhere}
-.status{margin:10px auto;color:var(--muted);font-size:12px}
+.hint,.status{font-size:12px;color:var(--muted);line-height:1.6;overflow-wrap:anywhere}
+.status{margin:12px}
 footer{padding:28px 12px;color:#8f87b7;font-size:12px}
 @media(max-width:500px){.team{min-width:135px;padding:9px}.answer{padding:8px;min-height:62px;border-width:2px}.number{width:30px;min-width:30px;height:30px}.points{font-size:17px}}
 </style>
@@ -55,89 +53,45 @@ footer{padding:28px 12px;color:#8f87b7;font-size:12px}
 </header>
 
 <section class="scoreboard">
-  <div class="team">
-    <div class="team-name" id="team1Label">Team Nina</div>
-    <div class="score" id="score1">0</div>
-  </div>
-  <div class="team">
-    <div class="team-name" id="team2Label">Team Chaos</div>
-    <div class="score" id="score2">0</div>
-  </div>
+  <div class="team"><div class="team-name" id="team1">Team Nina</div><div class="score" id="score1">0</div></div>
+  <div class="team"><div class="team-name" id="team2">Team Chaos</div><div class="score" id="score2">0</div></div>
 </section>
-
-<div class="round-label" id="roundLabel">Round 1</div>
+<div class="round-label" id="round">Round 1</div>
 <div id="question">Connecting to the game…</div>
 <div id="board"></div>
-<div class="strikes">
-  <span class="strike" id="strike1">X</span>
-  <span class="strike" id="strike2">X</span>
-  <span class="strike" id="strike3">X</span>
-</div>
-<div class="bank">Round bank <strong id="bank">0</strong></div>
+<div class="strikes"><span class="strike" id="x1">X</span><span class="strike" id="x2">X</span><span class="strike" id="x3">X</span></div>
+<div class="bank">Round bank<strong id="bank">0</strong></div>
 <div class="status" id="status">Connecting…</div>
 
 <section id="hostPanel">
-  <h2>🎤 Host Control Room</h2>
-  <p class="hint">Keep this page on your phone. The normal website address is for the TV.</p>
-  <p class="hint">Your host ID (needed to secure the database):</p>
-  <p class="hint" id="hostUid">Waiting for sign-in…</p>
-  <button class="secondary" id="copyUid">Copy host ID</button>
-
-  <h3>Team names</h3>
-  <div class="row">
-    <input id="team1Input" value="Team Nina" aria-label="Team 1 name">
-    <input id="team2Input" value="Team Chaos" aria-label="Team 2 name">
-    <button id="saveTeams">Save names</button>
-  </div>
-
-  <h3>Question and round</h3>
-  <div class="row">
-    <input id="questionInput" aria-label="Question" value="What is something Nina could talk about for hours?">
-    <input id="roundInput" aria-label="Round number" type="number" min="1" value="1" style="max-width:85px">
-    <button id="saveQuestion">Update</button>
-  </div>
-
-  <h3>Reveal answers</h3>
-  <div class="row" id="revealButtons"></div>
-
-  <h3>Strikes</h3>
-  <div class="row">
-    <button class="danger" id="addStrike">Add strike ✕</button>
-    <button class="secondary" id="removeStrike">Remove strike</button>
-    <button class="secondary" id="resetStrikes">Reset strikes</button>
-  </div>
-
-  <h3>Round scoring</h3>
-  <div class="row">
-    <button class="gold" id="award1">Award bank to Team 1</button>
-    <button class="gold" id="award2">Award bank to Team 2</button>
-    <button class="secondary" id="clearBank">Reset revealed answers</button>
-  </div>
-
-  <h3>Adjust scores</h3>
-  <div class="row">
-    <button class="secondary" id="minus1">Team 1 −10</button>
-    <button class="secondary" id="plus1">Team 1 +10</button>
-    <button class="secondary" id="minus2">Team 2 −10</button>
-    <button class="secondary" id="plus2">Team 2 +10</button>
-  </div>
-
-  <h3>Answer key</h3>
-  <div id="hostAnswers"></div>
-  <div class="row">
-    <button id="saveAnswers">Save answer key</button>
-    <button class="secondary" id="nextRound">Start next round</button>
-  </div>
-  <p class="hint">If the database is still locked, the controls will not save changes yet. We'll configure access after the host ID appears.</p>
+<h2>🎤 Host Control Room</h2>
+<p class="hint">Keep this page on your phone. Open the normal URL on the TV.</p>
+<p class="hint">Your authenticated host ID (keep private):</p>
+<p class="hint" id="uid">Signing in…</p>
+<button class="secondary" id="copyUid">Copy host ID</button>
+<h3>Team names</h3>
+<div class="row"><input id="name1" value="Team Nina"><input id="name2" value="Team Chaos"><button id="saveNames">Save names</button></div>
+<h3>Question and round</h3>
+<div class="row"><input id="questionInput" value="What is something Nina could talk about for hours?"><input id="roundInput" type="number" min="1" value="1" style="max-width:85px"><button id="saveQuestion">Update</button></div>
+<h3>Reveal answers</h3><div class="row" id="reveal"></div>
+<h3>Strikes</h3>
+<div class="row"><button class="danger" id="addStrike">Add strike ✕</button><button class="secondary" id="removeStrike">Remove strike</button><button class="secondary" id="resetStrike">Reset strikes</button></div>
+<h3>Round scoring</h3>
+<div class="row"><button class="gold" id="award1">Award bank to Team 1</button><button class="gold" id="award2">Award bank to Team 2</button><button class="secondary" id="resetBank">Hide all answers</button></div>
+<h3>Adjust scores</h3>
+<div class="row"><button class="secondary" id="minus1">Team 1 −10</button><button class="secondary" id="plus1">Team 1 +10</button><button class="secondary" id="minus2">Team 2 −10</button><button class="secondary" id="plus2">Team 2 +10</button></div>
+<h3>Private answer key</h3>
+<div id="answerEditor"></div>
+<div class="row"><button id="saveAnswers">Save answer key</button><button class="secondary" id="nextRound">Start next round</button></div>
+<p class="hint">The answer key is stored separately from the public board. Database rules must be configured before controls can save.</p>
 </section>
-
 <footer>THE NINA GAMES · EST. 2026</footer>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 <script>
-/* Replace each placeholder with the matching value from Firebase Project Settings. */
+/* Copy the real values from Firebase Project Settings > Your apps > Config. */
 const firebaseConfig = {
   apiKey: "AIzaSyCw9DEM4lm27N7EWTWit35FH8XbKuLSWps",
   authDomain: "nina-games.firebaseapp.com",
@@ -149,195 +103,153 @@ const firebaseConfig = {
 };
 
 const isHost = new URLSearchParams(location.search).get("host") === "1";
-if (isHost) document.getElementById("hostPanel").style.display = "block";
+if(isHost) document.getElementById("hostPanel").style.display = "block";
 
-const initialState = {
-  teamNames: ["Team Nina", "Team Chaos"],
-  scores: [0, 0],
-  question: "What is something Nina could talk about for hours?",
-  round: 1,
-  strikes: 0,
-  answers: [
-    {text:"Bachata", points:35, revealed:false},
-    {text:"DJing / music", points:25, revealed:false},
-    {text:"Her love life", points:18, revealed:false},
-    {text:"Travelling", points:12, revealed:false},
-    {text:"Plants", points:7, revealed:false},
-    {text:"Her job", points:3, revealed:false}
-  ]
+const initialAnswers = [
+ {text:"Bachata",points:35},{text:"DJing / music",points:25},
+ {text:"Her love life",points:18},{text:"Travelling",points:12},
+ {text:"Plants",points:7},{text:"Her job",points:3}
+];
+const initialPublic = {
+ teamNames:["Team Nina","Team Chaos"],scores:[0,0],
+ question:"What is something Nina could talk about for hours?",
+ round:1,strikes:0,revealed:{},points:{}
 };
 
-let game = null;
-let db = null;
-let uid = null;
-let writing = false;
-
+let db, uid, pub = null, privateAnswers = null, busy = false;
 const $ = id => document.getElementById(id);
-const setStatus = message => $("status").textContent = message;
+const say = t => $("status").textContent = t;
 
-function render() {
-  if (!game) return;
-  $("team1Label").textContent = game.teamNames?.[0] || "Team 1";
-  $("team2Label").textContent = game.teamNames?.[1] || "Team 2";
-  $("score1").textContent = game.scores?.[0] ?? 0;
-  $("score2").textContent = game.scores?.[1] ?? 0;
-  $("question").textContent = game.question || "";
-  $("roundLabel").textContent = "Round " + (game.round || 1);
-  $("bank").textContent = (game.answers || []).reduce((s,a) => s + (a.revealed ? Number(a.points)||0 : 0), 0);
-  for(let i=1;i<=3;i++) $("strike"+i).classList.toggle("active", i <= (game.strikes||0));
+function render(){
+ if(!pub) return;
+ $("team1").textContent=pub.teamNames?.[0]||"Team 1";
+ $("team2").textContent=pub.teamNames?.[1]||"Team 2";
+ $("score1").textContent=pub.scores?.[0]||0;
+ $("score2").textContent=pub.scores?.[1]||0;
+ $("question").textContent=pub.question||"";
+ $("round").textContent="Round "+(pub.round||1);
+ let bank=0; const board=$("board"); board.replaceChildren();
+ for(let i=0;i<6;i++){
+  const a=pub.revealed?.[i];
+  const tile=document.createElement("div");tile.className="answer";
+  const n=document.createElement("span");n.className="number";n.textContent=i+1;
+  const t=document.createElement("span");t.textContent=a?.text||"";t.style.visibility=a?"visible":"hidden";
+  const p=document.createElement("span");p.className="points";p.textContent=a?.points??"";p.style.visibility=a?"visible":"hidden";
+  tile.append(n,t,p);board.append(tile);
+  if(a) bank+=Number(a.points)||0;
+ }
+ $("bank").textContent=bank;
+ for(let i=1;i<=3;i++) $("x"+i).classList.toggle("active",i<=(pub.strikes||0));
+ if(isHost) renderHost();
+}
 
-  const board = $("board");
-  board.replaceChildren();
-  (game.answers || []).forEach((a,i) => {
-    const tile = document.createElement("div");
-    tile.className = "answer" + (a.revealed ? "" : " hidden");
-    const number = document.createElement("span");
-    number.className = "number";
-    number.textContent = i+1;
-    const text = document.createElement("span");
-    text.className = "answer-text";
-    text.textContent = a.text || "";
-    const points = document.createElement("span");
-    points.className = "points";
-    points.textContent = a.points ?? 0;
-    tile.append(number,text,points);
-    board.append(tile);
+function renderHost(){
+ $("name1").value=pub.teamNames?.[0]||"";
+ $("name2").value=pub.teamNames?.[1]||"";
+ $("questionInput").value=pub.question||"";
+ $("roundInput").value=pub.round||1;
+ const r=$("reveal");r.replaceChildren();
+ (privateAnswers||[]).forEach((a,i)=>{
+  const b=document.createElement("button");
+  b.className=pub.revealed?.[i]?"secondary":"";
+  b.textContent=pub.revealed?.[i]?"Hide #"+(i+1):"Reveal #"+(i+1);
+  b.onclick=()=>change(async()=>{
+   const revealed={...(pub.revealed||{})};
+   if(revealed[i]) delete revealed[i];
+   else revealed[i]={text:privateAnswers[i].text,points:Number(privateAnswers[i].points)||0};
+   await db.ref("publicGame/revealed").set(revealed);
   });
-
-  if (isHost) renderHost();
+  r.append(b);
+ });
+ const ed=$("answerEditor");ed.replaceChildren();
+ (privateAnswers||[]).forEach((a,i)=>{
+  const row=document.createElement("div");row.className="host-answer";
+  const text=document.createElement("input");text.value=a.text;text.setAttribute("aria-label","Answer "+(i+1));
+  const pts=document.createElement("input");pts.type="number";pts.min="0";pts.value=a.points;pts.setAttribute("aria-label","Points "+(i+1));
+  row.append(text,pts);ed.append(row);
+ });
 }
 
-function renderHost() {
-  $("team1Input").value = game.teamNames?.[0] || "";
-  $("team2Input").value = game.teamNames?.[1] || "";
-  $("questionInput").value = game.question || "";
-  $("roundInput").value = game.round || 1;
-
-  const reveal = $("revealButtons");
-  reveal.replaceChildren();
-  (game.answers||[]).forEach((a,i) => {
-    const b = document.createElement("button");
-    b.className = a.revealed ? "secondary" : "";
-    b.textContent = a.revealed ? "Hide #" + (i+1) : "Reveal #" + (i+1);
-    b.onclick = () => update(g => {
-      g.answers[i].revealed = !g.answers[i].revealed;
-    });
-    reveal.append(b);
-  });
-
-  const key = $("hostAnswers");
-  key.replaceChildren();
-  (game.answers||[]).forEach((a,i) => {
-    const row = document.createElement("div");
-    row.className = "host-answer";
-    const answer = document.createElement("input");
-    answer.setAttribute("aria-label","Answer "+(i+1));
-    answer.value = a.text || "";
-    const points = document.createElement("input");
-    points.type = "number";
-    points.min = "0";
-    points.setAttribute("aria-label","Points "+(i+1));
-    points.value = a.points ?? 0;
-    row.append(answer,points);
-    key.append(row);
-  });
+async function change(fn){
+ if(!isHost||!uid||busy)return;
+ busy=true;
+ try{await fn();say("Changes saved");}
+ catch(e){say("Not saved: "+e.message);}
+ finally{busy=false;}
 }
 
-async function update(mutator) {
-  if (!isHost || !db || !uid || writing) return;
-  writing = true;
-  try {
-    const snap = await db.ref("game").get();
-    const current = snap.val() || initialState;
-    mutator(current);
-    await db.ref("game").set(current);
-    setStatus("Connected · changes saved");
-  } catch (e) {
-    setStatus("Could not save: " + e.message);
-  } finally {
-    writing = false;
+function bind(id,fn){$(id).onclick=()=>change(fn);}
+
+async function setup(){
+ try{
+  if(Object.values(firebaseConfig).some(v=>String(v).startsWith("PASTE_")))throw new Error("Firebase configuration is incomplete.");
+  firebase.initializeApp(firebaseConfig);db=firebase.database();
+  const credential=await firebase.auth().signInAnonymously();
+  uid=credential.user.uid;
+  if(isHost)$("uid").textContent=uid;
+  say("Signed in. Waiting for database permissions…");
+
+  db.ref("publicGame").on("value",snap=>{
+   if(snap.exists()){pub=snap.val();render();}
+   else if(isHost)say("Host signed in. Database rules must be configured before setup.");
+  },e=>say("Public board access: "+e.message));
+
+  if(isHost){
+   db.ref("privateAnswers").on("value",async snap=>{
+    if(snap.exists()){privateAnswers=snap.val();if(pub)renderHost();}
+    else say("Host signed in. Private answer key awaits database permissions.");
+   },e=>say("Private answer key access: "+e.message));
   }
+ }catch(e){say("Setup error: "+e.message);}
 }
 
-function connect() {
-  try {
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    db = firebase.database();
-
-    auth.signInAnonymously().then(async credential => {
-      uid = credential.user.uid;
-      if (isHost) $("hostUid").textContent = uid;
-      setStatus("Signed in · connecting to database…");
-
-      const ref = db.ref("game");
-      ref.on("value", snap => {
-        game = snap.val();
-        if (!game && isHost) {
-          setStatus("Database is locked until rules are configured. Host ID is ready.");
-          return;
-        }
-        if (game) {
-          render();
-          setStatus("Live connection active");
-        } else {
-          setStatus("Waiting for host to initialise the game…");
-        }
-      }, error => setStatus("Database access blocked: " + error.message));
-    }).catch(e => setStatus("Sign-in failed: " + e.message));
-  } catch(e) {
-    setStatus("Configuration error: check the Firebase values in index.html");
-  }
-}
-
-$("copyUid").onclick = async () => {
-  if (!uid) return;
-  try {
-    await navigator.clipboard.writeText(uid);
-    setStatus("Host ID copied");
-  } catch {
-    setStatus("Select and copy the host ID shown above");
-  }
+$("copyUid").onclick=async()=>{
+ if(!uid)return;
+ try{await navigator.clipboard.writeText(uid);say("Host ID copied.");}
+ catch{say("Select and copy the host ID above.");}
 };
+bind("saveNames",async()=>{
+ await db.ref("publicGame/teamNames").set([
+  $("name1").value.trim()||"Team 1",$("name2").value.trim()||"Team 2"
+ ]);
+});
+bind("saveQuestion",async()=>{
+ await db.ref("publicGame/question").set($("questionInput").value.trim());
+ await db.ref("publicGame/round").set(Math.max(1,Number($("roundInput").value)||1));
+});
+bind("addStrike",()=>db.ref("publicGame/strikes").set(Math.min(3,(pub.strikes||0)+1)));
+bind("removeStrike",()=>db.ref("publicGame/strikes").set(Math.max(0,(pub.strikes||0)-1)));
+bind("resetStrike",()=>db.ref("publicGame/strikes").set(0));
+bind("award1",async()=>{
+ const bank=Object.values(pub.revealed||{}).reduce((s,a)=>s+(Number(a.points)||0),0);
+ await db.ref("publicGame/scores/0").set((pub.scores?.[0]||0)+bank);
+ await db.ref("publicGame/revealed").set({});
+});
+bind("award2",async()=>{
+ const bank=Object.values(pub.revealed||{}).reduce((s,a)=>s+(Number(a.points)||0),0);
+ await db.ref("publicGame/scores/1").set((pub.scores?.[1]||0)+bank);
+ await db.ref("publicGame/revealed").set({});
+});
+bind("resetBank",()=>db.ref("publicGame/revealed").set({}));
+bind("minus1",()=>db.ref("publicGame/scores/0").set(Math.max(0,(pub.scores?.[0]||0)-10)));
+bind("plus1",()=>db.ref("publicGame/scores/0").set((pub.scores?.[0]||0)+10));
+bind("minus2",()=>db.ref("publicGame/scores/1").set(Math.max(0,(pub.scores?.[1]||0)-10)));
+bind("plus2",()=>db.ref("publicGame/scores/1").set((pub.scores?.[1]||0)+10));
+bind("saveAnswers",async()=>{
+ const rows=[...$("answerEditor").children];
+ privateAnswers=rows.map(row=>({text:row.children[0].value.trim()||"Answer",points:Math.max(0,Number(row.children[1].value)||0)}));
+ await db.ref("privateAnswers").set(privateAnswers);
+ const revealed={...(pub.revealed||{})};
+ Object.keys(revealed).forEach(k=>{if(!privateAnswers[k])delete revealed[k];else revealed[k]={text:privateAnswers[k].text,points:privateAnswers[k].points};});
+ await db.ref("publicGame/revealed").set(revealed);
+});
+bind("nextRound",async()=>{
+ await db.ref("publicGame/round").set((pub.round||1)+1);
+ await db.ref("publicGame/strikes").set(0);
+ await db.ref("publicGame/revealed").set({});
+});
 
-$("saveTeams").onclick = () => update(g => {
-  g.teamNames = [$("team1Input").value.trim() || "Team 1", $("team2Input").value.trim() || "Team 2"];
-});
-$("saveQuestion").onclick = () => update(g => {
-  g.question = $("questionInput").value.trim();
-  g.round = Math.max(1, Number($("roundInput").value)||1);
-});
-$("addStrike").onclick = () => update(g => g.strikes = Math.min(3,(g.strikes||0)+1));
-$("removeStrike").onclick = () => update(g => g.strikes = Math.max(0,(g.strikes||0)-1));
-$("resetStrikes").onclick = () => update(g => g.strikes = 0);
-$("award1").onclick = () => update(g => {
-  g.scores[0] = (g.scores[0]||0) + g.answers.reduce((s,a)=>s+(a.revealed?(Number(a.points)||0):0),0);
-  g.answers.forEach(a=>a.revealed=false);
-});
-$("award2").onclick = () => update(g => {
-  g.scores[1] = (g.scores[1]||0) + g.answers.reduce((s,a)=>s+(a.revealed?(Number(a.points)||0):0),0);
-  g.answers.forEach(a=>a.revealed=false);
-});
-$("clearBank").onclick = () => update(g => g.answers.forEach(a=>a.revealed=false));
-$("minus1").onclick = () => update(g => g.scores[0] = Math.max(0,(g.scores[0]||0)-10));
-$("plus1").onclick = () => update(g => g.scores[0] = (g.scores[0]||0)+10);
-$("minus2").onclick = () => update(g => g.scores[1] = Math.max(0,(g.scores[1]||0)-10));
-$("plus2").onclick = () => update(g => g.scores[1] = (g.scores[1]||0)+10);
-$("saveAnswers").onclick = () => update(g => {
-  const rows = [...$("hostAnswers").children];
-  g.answers = rows.map((row,i)=>({
-    text: row.children[0].value.trim() || "Answer "+(i+1),
-    points: Math.max(0,Number(row.children[1].value)||0),
-    revealed: g.answers?.[i]?.revealed || false
-  }));
-});
-$("nextRound").onclick = () => update(g => {
-  g.round = (g.round||1)+1;
-  g.strikes = 0;
-  g.answers.forEach(a=>a.revealed=false);
-});
-
-connect();
+setup();
 </script>
 </body>
 </html>
