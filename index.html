@@ -1,0 +1,531 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Nina Games</title>
+<style>
+  :root {
+    --navy: #10102b;
+    --purple: #7048e8;
+    --gold: #ffd166;
+    --white: #fff;
+    --muted: #b9b7d9;
+    --pink: #ff5c8a;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse at top, #29205b 0%, transparent 55%),
+      var(--navy);
+    color: var(--white);
+    font-family: system-ui, -apple-system, sans-serif;
+    text-align: center;
+  }
+
+  header { padding: 25px 15px 10px; }
+
+  .eyebrow {
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  h1 {
+    margin: 8px 0 5px;
+    font-size: clamp(36px, 7vw, 72px);
+    line-height: 1.05;
+    font-weight: 1000;
+    text-transform: uppercase;
+    font-style: italic;
+    text-shadow: 4px 4px 0 #4927a8;
+  }
+
+  .subtitle { color: var(--muted); margin: 8px; }
+
+  .scoreboard {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding: 18px;
+    flex-wrap: wrap;
+  }
+
+  .team {
+    background: #211d49;
+    border: 2px solid #6552bd;
+    border-radius: 16px;
+    padding: 12px 25px;
+    min-width: 190px;
+  }
+
+  .team-name {
+    color: var(--muted);
+    font-weight: 800;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .score {
+    color: var(--gold);
+    font-size: 42px;
+    font-weight: 900;
+  }
+
+  .round-label {
+    display: inline-block;
+    background: var(--gold);
+    color: #21163c;
+    border-radius: 30px;
+    padding: 7px 18px;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+
+  #question {
+    margin: 17px auto 20px;
+    padding: 0 20px;
+    max-width: 900px;
+    font-size: clamp(23px, 4vw, 38px);
+    font-weight: 850;
+  }
+
+  #board {
+    width: min(800px, 92vw);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .answer {
+    min-height: 76px;
+    border: 3px solid #a997ff;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #5234bd, #302078);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    gap: 10px;
+    font-size: clamp(15px, 2.4vw, 21px);
+    font-weight: 800;
+    text-align: left;
+    overflow: hidden;
+  }
+
+  .answer .number {
+    background: #17113f;
+    border: 2px solid #a997ff;
+    border-radius: 8px;
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    color: var(--gold);
+  }
+
+  .answer .points {
+    color: var(--gold);
+    font-size: 22px;
+    min-width: 35px;
+    text-align: right;
+  }
+
+  .answer.hidden .answer-text,
+  .answer.hidden .points { visibility: hidden; }
+
+  .answer.hidden {
+    background: linear-gradient(135deg, #322273, #211750);
+  }
+
+  .strikes {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 23px;
+    min-height: 55px;
+  }
+
+  .strike {
+    color: #54496f;
+    font-size: 43px;
+    font-weight: 1000;
+  }
+
+  .strike.active {
+    color: var(--pink);
+    text-shadow: 0 0 18px #ff3e75;
+  }
+
+  .bank {
+    color: var(--muted);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .bank strong {
+    display: block;
+    color: var(--gold);
+    font-size: 34px;
+    letter-spacing: 0;
+  }
+
+  #hostPanel {
+    display: none;
+    width: min(800px, 92vw);
+    margin: 30px auto;
+    padding: 20px;
+    background: #1b173b;
+    border: 1px solid #6552bd;
+    border-radius: 18px;
+    text-align: left;
+  }
+
+  #hostPanel h2 { margin-top: 0; }
+
+  .host-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin: 15px 0;
+  }
+
+  button, select, input {
+    font: inherit;
+    border-radius: 9px;
+    border: 1px solid #7566b7;
+    padding: 10px 13px;
+  }
+
+  button {
+    background: var(--purple);
+    color: white;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  button:hover { filter: brightness(1.2); }
+
+  button.secondary { background: #302a55; }
+  button.danger { background: #9d2855; }
+  button.gold { background: var(--gold); color: #21163c; }
+
+  input, select {
+    background: #100d28;
+    color: white;
+    max-width: 100%;
+  }
+
+  .field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 0;
+  }
+
+  .field label { color: var(--muted); font-size: 13px; }
+
+  #hostAnswers {
+    display: grid;
+    gap: 8px;
+  }
+
+  .host-answer {
+    display: grid;
+    grid-template-columns: 1fr 85px auto;
+    gap: 7px;
+  }
+
+  .host-answer input { width: 100%; min-width: 0; }
+
+  .hint {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  footer {
+    padding: 30px 15px;
+    color: #8f87b7;
+    font-size: 12px;
+  }
+
+  @media (max-width: 500px) {
+    .team { min-width: 135px; padding: 10px; }
+    #board { gap: 7px; }
+    .answer { min-height: 65px; padding: 8px; border-width: 2px; }
+    .answer .number { width: 30px; min-width: 30px; height: 30px; }
+    .answer .points { font-size: 17px; }
+    .host-answer { grid-template-columns: 1fr 65px; }
+    .host-answer button { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">One birthday. Two teams. No mercy.</div>
+  <h1>The Nina Games</h1>
+  <p class="subtitle">How well do you REALLY know Nina?</p>
+</header>
+
+<section class="scoreboard">
+  <div class="team">
+    <div class="team-name" id="team1Label">Team Nina</div>
+    <div class="score" id="score1">0</div>
+    <button class="secondary host-only" onclick="changeScore(1, -10)">−10</button>
+    <button class="secondary host-only" onclick="changeScore(1, 10)">+10</button>
+  </div>
+  <div class="team">
+    <div class="team-name" id="team2Label">Team Chaos</div>
+    <div class="score" id="score2">0</div>
+    <button class="secondary host-only" onclick="changeScore(2, -10)">−10</button>
+    <button class="secondary host-only" onclick="changeScore(2, 10)">+10</button>
+  </div>
+</section>
+
+<div class="round-label" id="roundLabel">Round 1</div>
+<div id="question">What is something Nina could talk about for hours?</div>
+<div id="board"></div>
+
+<div class="strikes" aria-label="Strikes">
+  <span class="strike" id="strike1">X</span>
+  <span class="strike" id="strike2">X</span>
+  <span class="strike" id="strike3">X</span>
+</div>
+
+<div class="bank">Round bank <strong id="bank">0</strong></div>
+
+<section id="hostPanel">
+  <h2>🎤 Host Control Room</h2>
+  <p class="hint">Use this panel to manage the round. The answers and scores below are sample data for now.</p>
+
+  <div class="field">
+    <label for="team1Input">Team 1</label>
+    <input id="team1Input" value="Team Nina">
+    <label for="team2Input">Team 2</label>
+    <input id="team2Input" value="Team Chaos">
+    <button onclick="saveTeams()">Save names</button>
+  </div>
+
+  <div class="field">
+    <label for="questionInput">Question</label>
+    <input id="questionInput" value="What is something Nina could talk about for hours?" style="flex:1;min-width:200px">
+    <label for="roundInput">Round</label>
+    <input id="roundInput" type="number" value="1" min="1" style="width:75px">
+    <button onclick="saveQuestion()">Update</button>
+  </div>
+
+  <h3>Reveal answers</h3>
+  <div class="host-buttons" id="revealButtons"></div>
+
+  <h3>Strikes</h3>
+  <div class="host-buttons">
+    <button class="danger" onclick="addStrike()">Add strike ✕</button>
+    <button class="secondary" onclick="removeStrike()">Remove strike</button>
+    <button class="secondary" onclick="resetStrikes()">Reset strikes</button>
+  </div>
+
+  <h3>Round scoring</h3>
+  <div class="host-buttons">
+    <button class="gold" onclick="awardBank(1)">Award bank to Team 1</button>
+    <button class="gold" onclick="awardBank(2)">Award bank to Team 2</button>
+    <button class="secondary" onclick="clearBank()">Clear bank</button>
+  </div>
+
+  <h3>Edit the answer key</h3>
+  <p class="hint">Change the answers and points here. The total is calculated from the points you enter.</p>
+  <div id="hostAnswers"></div>
+  <div class="host-buttons">
+    <button onclick="saveAnswers()">Save answer key</button>
+    <button class="secondary" onclick="nextRound()">Reset round</button>
+  </div>
+
+  <p class="hint">
+    Host mode is currently on this device only. Phone-to-TV synchronisation will be added in a later step.
+  </p>
+</section>
+
+<footer>THE NINA GAMES · EST. 2026</footer>
+
+<script>
+const startingAnswers = [
+  { text: "Bachata", points: 35, revealed: false },
+  { text: "DJing / music", points: 25, revealed: false },
+  { text: "Her love life", points: 18, revealed: false },
+  { text: "Travelling", points: 12, revealed: false },
+  { text: "Plants", points: 7, revealed: false },
+  { text: "Her job", points: 3, revealed: false }
+];
+
+let answers = startingAnswers.map(a => ({...a}));
+let scores = [0, 0];
+let strikes = 0;
+let bank = 0;
+let round = 1;
+
+const isHost = new URLSearchParams(location.search).get("host") === "1";
+
+if (isHost) {
+  document.getElementById("hostPanel").style.display = "block";
+  document.querySelectorAll(".host-only").forEach(el => el.style.display = "inline-block");
+}
+
+function renderBoard() {
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+
+  answers.forEach((answer, i) => {
+    const tile = document.createElement("div");
+    tile.className = "answer" + (answer.revealed ? "" : " hidden");
+    tile.innerHTML = `
+      <span class="number">${i + 1}</span>
+      <span class="answer-text"></span>
+      <span class="points"></span>`;
+    tile.querySelector(".answer-text").textContent = answer.text;
+    tile.querySelector(".points").textContent = answer.points;
+    board.appendChild(tile);
+  });
+
+  document.getElementById("score1").textContent = scores[0];
+  document.getElementById("score2").textContent = scores[1];
+  document.getElementById("bank").textContent = bank;
+  document.getElementById("roundLabel").textContent = "Round " + round;
+
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById("strike" + i).classList.toggle("active", i <= strikes);
+  }
+
+  renderHostControls();
+}
+
+function renderHostControls() {
+  if (!isHost) return;
+
+  const buttons = document.getElementById("revealButtons");
+  buttons.innerHTML = "";
+
+  answers.forEach((answer, i) => {
+    const btn = document.createElement("button");
+    btn.className = answer.revealed ? "secondary" : "";
+    btn.textContent = answer.revealed
+      ? `Hide #${i + 1}`
+      : `Reveal #${i + 1}`;
+    btn.onclick = () => {
+      answers[i].revealed = !answers[i].revealed;
+      if (answers[i].revealed) bank += Number(answers[i].points) || 0;
+      else bank -= Number(answers[i].points) || 0;
+      bank = Math.max(0, bank);
+      renderBoard();
+    };
+    buttons.appendChild(btn);
+  });
+
+  const hostAnswers = document.getElementById("hostAnswers");
+  hostAnswers.innerHTML = "";
+
+  answers.forEach((answer, i) => {
+    const row = document.createElement("div");
+    row.className = "host-answer";
+    row.innerHTML = `
+      <input aria-label="Answer ${i + 1}" value="">
+      <input aria-label="Points ${i + 1}" type="number" min="0" value="">
+      <button class="secondary" onclick="toggleAnswer(${i})">
+        ${answer.revealed ? "Hide" : "Reveal"}
+      </button>`;
+    row.children[0].value = answer.text;
+    row.children[1].value = answer.points;
+    hostAnswers.appendChild(row);
+  });
+}
+
+function toggleAnswer(i) {
+  answers[i].revealed = !answers[i].revealed;
+  bank = answers.reduce((sum, a) => sum + (a.revealed ? Number(a.points) || 0 : 0), 0);
+  renderBoard();
+}
+
+function changeScore(team, amount) {
+  scores[team - 1] = Math.max(0, scores[team - 1] + amount);
+  renderBoard();
+}
+
+function addStrike() {
+  strikes = Math.min(3, strikes + 1);
+  renderBoard();
+}
+
+function removeStrike() {
+  strikes = Math.max(0, strikes - 1);
+  renderBoard();
+}
+
+function resetStrikes() {
+  strikes = 0;
+  renderBoard();
+}
+
+function awardBank(team) {
+  scores[team - 1] += bank;
+  bank = 0;
+  renderBoard();
+}
+
+function clearBank() {
+  bank = 0;
+  answers.forEach(a => a.revealed = false);
+  renderBoard();
+}
+
+function saveTeams() {
+  document.getElementById("team1Label").textContent =
+    document.getElementById("team1Input").value || "Team 1";
+  document.getElementById("team2Label").textContent =
+    document.getElementById("team2Input").value || "Team 2";
+}
+
+function saveQuestion() {
+  document.getElementById("question").textContent =
+    document.getElementById("questionInput").value;
+  round = Math.max(1, Number(document.getElementById("roundInput").value) || 1);
+  renderBoard();
+}
+
+function saveAnswers() {
+  const rows = document.getElementById("hostAnswers").children;
+  answers = Array.from(rows).map((row, i) => ({
+    text: row.children[0].value.trim() || "Answer " + (i + 1),
+    points: Math.max(0, Number(row.children[1].value) || 0),
+    revealed: answers[i]?.revealed || false
+  }));
+  bank = answers.reduce((sum, a) => sum + (a.revealed ? a.points : 0), 0);
+  renderBoard();
+}
+
+function nextRound() {
+  round++;
+  strikes = 0;
+  bank = 0;
+  answers.forEach(a => a.revealed = false);
+  document.getElementById("roundInput").value = round;
+  renderBoard();
+}
+
+renderBoard();
+</script>
+</body>
+</html>
