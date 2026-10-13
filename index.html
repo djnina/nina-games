@@ -198,7 +198,12 @@ if (isHost) {
   }
 
   const credential = await firebase.auth().signInWithEmailAndPassword(email, password);
-  uid = credential.user.uid;
+
+await credential.user.getIdToken(true);
+uid = credential.user.uid;
+
+console.log("Host UID:", uid);
+console.log("Auth provider:", credential.user.providerData);
 } else {
   const credential = await firebase.auth().signInAnonymously();
   uid = credential.user.uid;
