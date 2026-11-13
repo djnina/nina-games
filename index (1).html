@@ -1,0 +1,362 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Nina Games</title>
+<style>
+:root{--bg:#10102b;--purple:#7048e8;--gold:#ffd166;--muted:#b9b7d9;--pink:#ff5c8a}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#29205b,transparent 55%),var(--bg);color:white;font-family:system-ui,sans-serif;text-align:center}
+header{padding:22px 12px 8px}
+.eyebrow{color:var(--gold);text-transform:uppercase;letter-spacing:4px;font-size:12px;font-weight:800}
+h1{margin:8px 0;font-size:clamp(35px,7vw,68px);font-weight:1000;font-style:italic;text-shadow:4px 4px #4927a8}
+.subtitle{color:var(--muted)}
+.scoreboard{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;padding:12px}
+.team{background:#211d49;border:2px solid #6552bd;border-radius:16px;padding:12px 20px;min-width:160px}
+.team-name{color:var(--muted);font-weight:800;font-size:13px;letter-spacing:2px;text-transform:uppercase}
+.score{color:var(--gold);font-size:40px;font-weight:900}
+.round-label{display:inline-block;background:var(--gold);color:#21163c;border-radius:30px;padding:7px 18px;font-size:12px;font-weight:900;text-transform:uppercase}
+#question{margin:18px auto;padding:0 18px;max-width:950px;font-size:clamp(22px,4vw,38px);font-weight:850}
+#board{width:min(850px,94vw);margin:auto;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.answer{min-height:72px;border:3px solid #a997ff;border-radius:12px;background:linear-gradient(135deg,#5234bd,#302078);display:flex;align-items:center;justify-content:space-between;padding:10px 14px;gap:9px;font-size:clamp(14px,2.4vw,21px);font-weight:800;text-align:left;overflow:hidden}
+.number{background:#17113f;border:2px solid #a997ff;border-radius:8px;width:36px;min-width:36px;height:36px;display:grid;place-items:center;color:var(--gold)}
+.points{color:var(--gold);font-size:22px;min-width:30px;text-align:right}
+.strikes{display:flex;justify-content:center;gap:18px;margin:22px;min-height:48px}
+.strike{color:#54496f;font-size:42px;font-weight:1000}
+.strike.active{color:var(--pink);text-shadow:0 0 18px #ff3e75}
+.bank{color:var(--muted);font-size:13px;letter-spacing:2px;text-transform:uppercase}
+.bank strong{display:block;color:var(--gold);font-size:32px;letter-spacing:0}
+#hostPanel{display:none;width:min(850px,94vw);margin:28px auto;padding:20px;background:#1b173b;border:1px solid #6552bd;border-radius:18px;text-align:left}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;align-items:center}
+button,input,select{font:inherit;border-radius:9px;border:1px solid #7566b7;padding:10px 12px}
+select{background:#100d28;color:white;min-width:0;flex:1}
+button{background:var(--purple);color:white;font-weight:800;cursor:pointer}
+button.secondary{background:#302a55}
+button.danger{background:#9d2855}
+button.gold{background:var(--gold);color:#21163c}
+input{background:#100d28;color:white;min-width:0}
+.row input{flex:1;width:130px}
+.host-answer{display:grid;grid-template-columns:1fr 80px;gap:7px;margin:7px 0}
+.host-answer input{width:100%}
+.hint,.status{font-size:12px;color:var(--muted);line-height:1.6;overflow-wrap:anywhere}
+.status{margin:12px}
+footer{padding:28px 12px;color:#8f87b7;font-size:12px}
+@media(max-width:500px){.team{min-width:135px;padding:9px}.answer{padding:8px;min-height:62px;border-width:2px}.number{width:30px;min-width:30px;height:30px}.points{font-size:17px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">One birthday. Two teams. No mercy.</div>
+  <h1>The Nina Games</h1>
+  <div class="subtitle">How well do you REALLY know Nina?</div>
+</header>
+
+<section class="scoreboard">
+  <div class="team"><div class="team-name" id="team1">Team Nina</div><div class="score" id="score1">0</div></div>
+  <div class="team"><div class="team-name" id="team2">Team Chaos</div><div class="score" id="score2">0</div></div>
+</section>
+<div class="round-label" id="round">Round 1</div>
+<div id="question">Connecting to the game…</div>
+<div id="board"></div>
+<div class="strikes"><span class="strike" id="x1">X</span><span class="strike" id="x2">X</span><span class="strike" id="x3">X</span></div>
+<div class="bank">Round bank<strong id="bank">0</strong></div>
+<div class="status" id="status">Connecting…</div>
+
+<section id="hostPanel">
+<h2>🎤 Host Control Room</h2>
+<p class="hint">Keep this page on your phone. Open the normal URL on the TV.</p>
+<p class="hint">Your authenticated host ID (keep private):</p>
+<p class="hint" id="uid">Signing in…</p>
+<button class="secondary" id="copyUid">Copy host ID</button>
+<h3>Team names</h3>
+<div class="row"><input id="name1" value="Team Nina"><input id="name2" value="Team Chaos"><button id="saveNames">Save names</button></div>
+<h3>Question bank</h3>
+<p class="hint">Choose a round and question, then load it. The answer key, points, strikes and revealed board will update automatically. Team scores stay intact.</p>
+<div class="row"><select id="bankRound" aria-label="Choose round"></select><select id="bankQuestion" aria-label="Choose question"></select><button class="gold" id="loadBankQuestion">Load question</button></div>
+<h3>Manual question override</h3>
+<div class="row"><input id="questionInput" value="What is something Nina could talk about for hours?"><input id="roundInput" type="number" min="1" value="1" style="max-width:85px"><button id="saveQuestion">Update</button></div>
+<h3>Reveal answers</h3><div class="row" id="reveal"></div>
+<h3>Strikes</h3>
+<div class="row"><button class="danger" id="addStrike">Add strike ✕</button><button class="secondary" id="removeStrike">Remove strike</button><button class="secondary" id="resetStrike">Reset strikes</button></div>
+<h3>Round scoring</h3>
+<div class="row"><button class="gold" id="award1">Award bank to Team 1</button><button class="gold" id="award2">Award bank to Team 2</button><button class="secondary" id="resetBank">Hide all answers</button></div>
+<h3>Adjust scores</h3>
+<div class="row"><button class="secondary" id="minus1">Team 1 −10</button><button class="secondary" id="plus1">Team 1 +10</button><button class="secondary" id="minus2">Team 2 −10</button><button class="secondary" id="plus2">Team 2 +10</button></div>
+<h3>Private answer key</h3>
+<div id="answerEditor"></div>
+<div class="row"><button id="saveAnswers">Save answer key</button><button class="secondary" id="nextRound">Start next round</button></div>
+<p class="hint">The answer key is stored separately from the public board. Database rules must be configured before controls can save.</p>
+</section>
+<footer>THE NINA GAMES · EST. 2026</footer>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script>
+/* Copy the real values from Firebase Project Settings > Your apps > Config. */
+const firebaseConfig = {
+  apiKey: "AIzaSyCw9DEM4lm27N7EWTWit35FH8XbKuLSWps",
+  authDomain: "nina-games.firebaseapp.com",
+  databaseURL: "https://nina-games-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "nina-games",
+  storageBucket: "nina-games.firebasestorage.app",
+  messagingSenderId: "978132776086",
+  appId: "1:978132776086:web:e05c09968150bb54473eb7"
+};
+
+const isHost = new URLSearchParams(location.search).get("host") === "1";
+if(isHost) document.getElementById("hostPanel").style.display = "block";
+
+const questionBank = [
+ {round:"Disco Fever: The 70s",questions:[
+  ["Name something you'd expect to see at a 70s disco party.",[["Disco ball",30],["Flared trousers",24],["Platform shoes",18],["Glitter and sequins",12],["Colourful lights",9],["Afro hairstyles",7]]],
+  ["Name a 70s fashion trend that might look ridiculous today.",[["Huge flared trousers",30],["Platform shoes",24],["Polyester suits",18],["Very big collars",12],["Matching patterned outfits",9],["Extremely short shorts",7]]],
+  ["Name something famous that is strongly associated with the 1970s.",[["Disco music",30],["ABBA",24],["Saturday Night Fever",18],["The Bee Gees",12],["The Volkswagen Beetle",9],["Star Wars",7]]],
+  ["Name something people did for entertainment before smartphones and the internet.",[["Watch television",30],["Listen to music",24],["Read books or magazines",18],["Play board games",12],["Meet friends in person",9],["Go outside and play",7]]],
+  ["Name something you'd find in a stereotypical 70s living room.",[["Patterned wallpaper",30],["A shaggy carpet",24],["A wooden television cabinet",18],["A big sofa",12],["Crochet decorations",9],["A lava lamp",7]]]
+ ]},
+ {round:"Back in the Day: Poland & Beyond",questions:[
+  ["Name something people in communist-era Poland might have queued for.",[["Meat",30],["Toilet paper",24],["Sugar",18],["Coffee",12],["Shoes",9],["A washing machine",7]]],
+  ["Name something you might find in a Polish grandmother's home in the 1970s.",[["A glass cabinet with fancy dishes",30],["A crocheted tablecloth",24],["A wall carpet",18],["Pickled cucumbers",12],["A religious picture",9],["A crystal bowl",7]]],
+  ["Name something people did on holiday before budget airlines and Instagram.",[["Went to the beach",30],["Took photographs on film",24],["Went camping",18],["Visited family",12],["Sent postcards",9],["Went on road trips",7]]],
+  ["Name a food or drink that reminds people of Poland.",[["Pierogi",30],["Kielbasa",24],["Bigos",18],["Zurek",12],["Vodka",9],["Paczki",7]]],
+  ["Name something from the 1970s that would be considered a luxury today.",[["A colour television",30],["A foreign holiday",24],["A new car",18],["A telephone at home",12],["A washing machine",9],["A personal stereo",7]]]
+ ]},
+ {round:"Survey Says!",questions:[
+  ["Name something people do when they think nobody is watching.",[["Dance",30],["Sing",24],["Talk to themselves",18],["Pick their nose",12],["Eat secretly",9],["Look in the mirror",7]]],
+  ["Name something people regret doing after a night out.",[["Sending embarrassing messages",30],["Drinking too much",24],["Calling their ex",18],["Spending too much money",12],["Dancing embarrassingly",9],["Eating greasy food",7]]],
+  ["Name a reason someone might pretend to understand a conversation.",[["They're embarrassed to ask",30],["They weren't listening",24],["They don't want to look stupid",18],["They're trying to be polite",12],["They want the conversation to end",9],["They're distracted by their phone",7]]],
+  ["Name something people do when they have a crush on someone.",[["Check their social media",30],["Try to look attractive",24],["Make excuses to talk to them",18],["Get nervous",12],["Overthink every message",9],["Accidentally stare at them",7]]],
+  ["Name something that can instantly ruin a party.",[["Bad music",30],["A fight or argument",24],["No drinks",18],["Someone getting sick",12],["The neighbours complaining",9],["The power going out",7]]]
+ ]},
+ {round:"Music, Movies & Pop Culture",questions:[
+  ["Name a song that gets almost everyone onto the dance floor.",[["Dancing Queen - ABBA",30],["September - Earth, Wind & Fire",24],["Macarena - Los del Rio",18],["I Will Survive - Gloria Gaynor",12],["YMCA - Village People",9],["Murder on the Dancefloor - Sophie Ellis-Bextor",7]]],
+  ["Name a famous band or singer from the 1970s.",[["ABBA",30],["Queen",24],["The Bee Gees",18],["Elton John",12],["David Bowie",9],["Fleetwood Mac",7]]],
+  ["Name a film genre people love watching with friends.",[["Comedy",30],["Horror",24],["Action",18],["Romantic comedy",12],["Thriller",9],["Musical",7]]],
+  ["Name something people do when their favourite song comes on.",[["Start dancing",30],["Sing along",24],["Shout or cheer",18],["Record a video",12],["Pull their friends onto the dance floor",9],["Close their eyes and enjoy it",7]]],
+  ["Name a musical instrument that would be difficult to play at a party.",[["Drums",30],["Grand piano",24],["Harp",18],["Cello",12],["Bagpipes",9],["Tuba",7]]]
+ ]},
+ {round:"The Nina Files",questions:[
+  ["Name something Nina could talk about for hours.",[["Bachata and dancing",30],["Music and DJing",24],["Relationships",18],["Travelling",12],["Psychology and self-development",9],["Her plants",7]]],
+  ["Name something you would most likely find in Nina's home.",[["Plants",30],["Music equipment",24],["Dance shoes",18],["A laptop",12],["Yoga or workout equipment",9],["A collection of random projects",7]]],
+  ["Name a reason Nina might be late to a party.",[["She was choosing an outfit",30],["She was dancing or teaching",24],["She got distracted by a new idea",18],["She was working on something",12],["She was making a playlist",9],["She forgot what time it was",7]]],
+  ["Name something Nina would probably do if she suddenly became famous.",[["Become a full-time DJ",30],["Travel around the world",24],["Start a new business or project",18],["Teach dance workshops",12],["Buy a house full of plants",9],["Make a documentary about her life",7]]],
+  ["Name a place where you could imagine Nina spontaneously deciding to DJ.",[["A beach party",30],["A festival",24],["A friend's house party",18],["A random bar",12],["A wedding",9],["A rooftop party",7]]]
+ ]}
+];
+
+function bankAnswers(roundIndex, questionIndex){
+ const q=questionBank[roundIndex]?.questions[questionIndex];
+ return q ? q[1].map(([text,points])=>({text,points})) : [];
+}
+
+const initialAnswers = [
+ {text:"Bachata",points:35},{text:"DJing / music",points:25},
+ {text:"Her love life",points:18},{text:"Travelling",points:12},
+ {text:"Plants",points:7},{text:"Her job",points:3}
+];
+const initialPublic = {
+ teamNames:["Team Nina","Team Chaos"],scores:[0,0],
+ question:"What is something Nina could talk about for hours?",
+ round:1,strikes:0,revealed:{},points:{}
+};
+
+let db, uid, pub = null, privateAnswers = null, busy = false;
+const $ = id => document.getElementById(id);
+const say = t => $("status").textContent = t;
+
+function render(){
+ if(!pub) return;
+ $("team1").textContent=pub.teamNames?.[0]||"Team 1";
+ $("team2").textContent=pub.teamNames?.[1]||"Team 2";
+ $("score1").textContent=pub.scores?.[0]||0;
+ $("score2").textContent=pub.scores?.[1]||0;
+ $("question").textContent=pub.question||"";
+ $("round").textContent="Round "+(pub.round||1);
+ let bank=0; const board=$("board"); board.replaceChildren();
+ for(let i=0;i<6;i++){
+  const a=pub.revealed?.[i];
+  const tile=document.createElement("div");tile.className="answer";
+  const n=document.createElement("span");n.className="number";n.textContent=i+1;
+  const t=document.createElement("span");t.textContent=a?.text||"";t.style.visibility=a?"visible":"hidden";
+  const p=document.createElement("span");p.className="points";p.textContent=a?.points??"";p.style.visibility=a?"visible":"hidden";
+  tile.append(n,t,p);board.append(tile);
+  if(a) bank+=Number(a.points)||0;
+ }
+ $("bank").textContent=bank;
+ for(let i=1;i<=3;i++) $("x"+i).classList.toggle("active",i<=(pub.strikes||0));
+ if(isHost) renderHost();
+}
+
+function renderHost(){
+ $("name1").value=pub.teamNames?.[0]||"";
+ $("name2").value=pub.teamNames?.[1]||"";
+ $("questionInput").value=pub.question||"";
+ $("roundInput").value=pub.round||1;
+ const r=$("reveal");r.replaceChildren();
+ (privateAnswers||[]).forEach((a,i)=>{
+  const b=document.createElement("button");
+  b.className=pub.revealed?.[i]?"secondary":"";
+  b.textContent=pub.revealed?.[i]?"Hide #"+(i+1):"Reveal #"+(i+1);
+  b.onclick=()=>change(async()=>{
+   const revealed={...(pub.revealed||{})};
+   if(revealed[i]) delete revealed[i];
+   else revealed[i]={text:privateAnswers[i].text,points:Number(privateAnswers[i].points)||0};
+   await db.ref("publicGame/revealed").set(revealed);
+  });
+  r.append(b);
+ });
+ const ed=$("answerEditor");ed.replaceChildren();
+ (privateAnswers||[]).forEach((a,i)=>{
+  const row=document.createElement("div");row.className="host-answer";
+  const text=document.createElement("input");text.value=a.text;text.setAttribute("aria-label","Answer "+(i+1));
+  const pts=document.createElement("input");pts.type="number";pts.min="0";pts.value=a.points;pts.setAttribute("aria-label","Points "+(i+1));
+  row.append(text,pts);ed.append(row);
+ });
+}
+
+async function change(fn){
+  if(!isHost||!uid||busy)return;
+  if(!pub){
+    say("Game state is still loading. Please wait a moment.");
+    return;
+  }
+ busy=true;
+ try{await fn();say("Changes saved");}
+ catch(e){say("Not saved: "+e.message);}
+ finally{busy=false;}
+}
+
+function bind(id,fn){$(id).onclick=()=>change(fn);}
+
+async function setup(){
+ try{
+  if(Object.values(firebaseConfig).some(v=>String(v).startsWith("PASTE_")))throw new Error("Firebase configuration is incomplete.");
+  firebase.initializeApp(firebaseConfig);db=firebase.database();
+
+if (isHost) {
+  const email = prompt("Enter your Nina Games host email:");
+  const password = prompt("Enter your Nina Games host password:");
+
+  if (!email || !password) {
+    throw new Error("Host login cancelled.");
+  }
+
+  const credential = await firebase.auth().signInWithEmailAndPassword(email, password);
+
+await credential.user.getIdToken(true);
+uid = credential.user.uid;
+
+console.log("Host UID:", uid);
+console.log("Auth provider:", credential.user.providerData);
+} else {
+  const credential = await firebase.auth().signInAnonymously();
+  uid = credential.user.uid;
+}
+
+
+  if (isHost) {
+  const publicSnap = await db.ref("publicGame").get();
+
+  if (!publicSnap.exists()) {
+    await db.ref("publicGame").set(initialPublic);
+  }
+
+  const answersSnap = await db.ref("privateAnswers").get();
+
+  if (!answersSnap.exists()) {
+    await db.ref("privateAnswers").set(initialAnswers);
+  }
+} 
+  if(isHost)$("uid").textContent=uid;
+  say("Signed in. Waiting for database permissions…");
+
+  db.ref("publicGame").on("value",snap=>{
+   if(snap.exists()){pub=snap.val();render();}
+   else if(isHost)say("Host signed in. Database rules must be configured before setup.");
+  },e=>say("Public board access: "+e.message));
+
+  if(isHost){
+   db.ref("privateAnswers").on("value",async snap=>{
+    if(snap.exists()){privateAnswers=snap.val();if(pub)renderHost();}
+    else say("Host signed in. Private answer key awaits database permissions.");
+   },e=>say("Private answer key access: "+e.message));
+  }
+ }catch(e){say("Setup error: "+e.message);}
+}
+
+$("copyUid").onclick=async()=>{
+ if(!uid)return;
+ try{await navigator.clipboard.writeText(uid);say("Host ID copied.");}
+ catch{say("Select and copy the host ID above.");}
+};
+bind("saveNames",async()=>{
+ await db.ref("publicGame/teamNames").set([
+  $("name1").value.trim()||"Team 1",$("name2").value.trim()||"Team 2"
+ ]);
+});
+bind("saveQuestion",async()=>{
+ await db.ref("publicGame/question").set($("questionInput").value.trim());
+ await db.ref("publicGame/round").set(Math.max(1,Number($("roundInput").value)||1));
+});
+bind("addStrike",()=>db.ref("publicGame/strikes").set(Math.min(3,(pub.strikes||0)+1)));
+bind("removeStrike",()=>db.ref("publicGame/strikes").set(Math.max(0,(pub.strikes||0)-1)));
+bind("resetStrike",()=>db.ref("publicGame/strikes").set(0));
+bind("award1",async()=>{
+ const bank=Object.values(pub.revealed||{}).reduce((s,a)=>s+(Number(a.points)||0),0);
+ await db.ref("publicGame/scores/0").set((pub.scores?.[0]||0)+bank);
+ await db.ref("publicGame/revealed").set({});
+});
+bind("award2",async()=>{
+ const bank=Object.values(pub.revealed||{}).reduce((s,a)=>s+(Number(a.points)||0),0);
+ await db.ref("publicGame/scores/1").set((pub.scores?.[1]||0)+bank);
+ await db.ref("publicGame/revealed").set({});
+});
+bind("resetBank",()=>db.ref("publicGame/revealed").set({}));
+bind("minus1",()=>db.ref("publicGame/scores/0").set(Math.max(0,(pub.scores?.[0]||0)-10)));
+bind("plus1",()=>db.ref("publicGame/scores/0").set((pub.scores?.[0]||0)+10));
+bind("minus2",()=>db.ref("publicGame/scores/1").set(Math.max(0,(pub.scores?.[1]||0)-10)));
+bind("plus2",()=>db.ref("publicGame/scores/1").set((pub.scores?.[1]||0)+10));
+bind("saveAnswers",async()=>{
+ const rows=[...$("answerEditor").children];
+ privateAnswers=rows.map(row=>({text:row.children[0].value.trim()||"Answer",points:Math.max(0,Number(row.children[1].value)||0)}));
+ await db.ref("privateAnswers").set(privateAnswers);
+ const revealed={...(pub.revealed||{})};
+ Object.keys(revealed).forEach(k=>{if(!privateAnswers[k])delete revealed[k];else revealed[k]={text:privateAnswers[k].text,points:privateAnswers[k].points};});
+ await db.ref("publicGame/revealed").set(revealed);
+});
+bind("nextRound",async()=>{
+ await db.ref("publicGame/round").set((pub.round||1)+1);
+ await db.ref("publicGame/strikes").set(0);
+ await db.ref("publicGame/revealed").set({});
+});
+
+
+function populateBankPicker(){
+ const roundSelect=$("bankRound"), questionSelect=$("bankQuestion");
+ roundSelect.replaceChildren();
+ questionBank.forEach((r,i)=>{const o=document.createElement("option");o.value=i;o.textContent=`Round ${i+1}: ${r.round}`;roundSelect.append(o);});
+ function fillQuestions(){
+  const r=Number(roundSelect.value)||0;questionSelect.replaceChildren();
+  questionBank[r].questions.forEach((q,i)=>{const o=document.createElement("option");o.value=i;o.textContent=`${i+1}. ${q[0]}`;questionSelect.append(o);});
+ }
+ roundSelect.onchange=fillQuestions;fillQuestions();
+}
+
+bind("loadBankQuestion",async()=>{
+ const ri=Number($("bankRound").value)||0, qi=Number($("bankQuestion").value)||0;
+ const selected=questionBank[ri]?.questions[qi];
+ if(!selected)throw new Error("That question could not be found.");
+ const answers=bankAnswers(ri,qi);
+ await db.ref("privateAnswers").set(answers);
+ await db.ref("publicGame").update({question:selected[0],round:ri+1,strikes:0,revealed:{}});
+ say(`Loaded Round ${ri+1}, Question ${qi+1}. Scores are unchanged.`);
+});
+
+populateBankPicker();
+setup();
+</script>
+</body>
+</html>
